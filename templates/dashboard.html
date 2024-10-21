@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Gerenciamento de Tarefas</title>
+    <style>
+        body {
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            display: none; /* Oculta todas as seções inicialmente */
+        }
+        .content.active {
+            display: block; /* Mostra a seção ativa */
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 class="text-center">Menu</h2>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="showSection('criar-tarefa')">Criar Tarefa</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showSection('atualizar-tarefa')">Atualizar Tarefa</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showSection('excluir-tarefa')">Excluir Tarefa</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showSection('listar-tarefas')">Listar Tarefas</a>
+        </li>
+    </ul>
+</div>
+
+<div class="content" id="criar-tarefa">
+    <h1>Criar Tarefa</h1>
+    <form action="/criar-tarefa" method="POST">
+        <div class="form-group">
+            <label for="descricao">Descrição:</label>
+            <input type="text" class="form-control" id="descricao" name="descricao" required>
+        </div>
+        <div class="form-group">
+            <label for="dataCriacao">Data de Criação:</label>
+            <input type="date" class="form-control" id="dataCriacao" name="dataCriacao" required>
+        </div>
+        <div class="form-group">
+            <label for="dataLimite">Data Limite:</label>
+            <input type="date" class="form-control" id="dataLimite" name="dataLimite" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Adicionar Tarefa</button>
+    </form>
+</div>
+
+<div class="content" id="atualizar-tarefa">
+    <h1>Atualizar Tarefa</h1>
+    <form action="/atualizar-tarefa" method="POST">
+        <div class="form-group">
+            <label for="tarefaId">ID da Tarefa:</label>
+            <input type="number" class="form-control" id="tarefaId" name="tarefaId" required>
+        </div>
+        <div class="form-group">
+            <label for="novaDescricao">Nova Descrição:</label>
+            <input type="text" class="form-control" id="novaDescricao" name="novaDescricao">
+        </div>
+        <div class="form-group">
+            <label for="status">Status:</label>
+            <select class="form-control" id="status" name="status">
+                <option value="">Selecione...</option>
+                <option>Concluída</option>
+                <option>Em andamento</option>
+                <option>Pendente</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="novoPrazo">Novo Prazo:</label>
+            <input type="date" class="form-control" id="novoPrazo" name="novoPrazo">
+        </div>
+        <button type="submit" class="btn btn-warning">Atualizar Tarefa</button>
+    </form>
+</div>
+
+<div class="content" id="excluir-tarefa">
+    <h1>Excluir Tarefa</h1>
+    <form action="/excluir-tarefa" method="POST">
+        <div class="form-group">
+            <label for="excluirId">ID da Tarefa:</label>
+            <input type="number" class="form-control" id="excluirId" name="excluirId" required>
+        </div>
+        <button type="submit" class="btn btn-danger">Excluir Tarefa</button>
+    </form>
+</div>
+
+<div class="content" id="listar-tarefas">
+    <h1>Listar Tarefas</h1>
+    <form method="POST" action="{{ url_for('dashboard') }}#listar-tarefas">
+        <!-- Filtros -->
+        <div class="form-group">
+            <label for="filtroStatus">Filtrar por Status:</label>
+            <select class="form-control" id="filtroStatus" name="filtroStatus">
+                <option value="Todos">Todos</option>
+                <option value="Concluída">Concluída</option>
+                <option value="Em andamento">Em andamento</option>
+                <option value="Pendente">Pendente</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="filtroDataCriacao">Filtrar por Data de Criação:</label>
+            <input type="date" class="form-control" id="filtroDataCriacao" name="filtroDataCriacao">
+        </div>
+        <div class="form-group">
+            <label for="filtroPrazo">Filtrar por Prazo:</label>
+            <input type="date" class="form-control" id="filtroPrazo" name="filtroPrazo">
+        </div>
+        <div class="form-group">
+            <label for="filtroPrioridade">Filtrar por Prioridade:</label>
+            <select class="form-control" id="filtroPrioridade" name="filtroPrioridade">
+                <option value="Todos">Todos</option>
+                <option value="Baixa">Baixa</option>
+                <option value="Média">Média</option>
+                <option value="Alta">Alta</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="filtroPalavraChave">Filtrar por Palavras-chave:</label>
+            <input type="text" class="form-control" id="filtroPalavraChave" name="filtroPalavraChave">
+        </div>
+        <div class="form-group">
+            <label for="filtroCategoria">Filtrar por Categoria:</label>
+            <select class="form-control" id="filtroCategoria" name="filtroCategoria">
+                <option value="Todos">Todos</option>
+                <option value="Trabalho">Trabalho</option>
+                <option value="Estudo">Estudo</option>
+                <option value="Pessoal">Pessoal</option>
+            </select>
+        </div>
+        <button class="btn btn-info" type="submit">Filtrar Tarefas</button>
+    </form>
+
+    <h2>Tarefas</h2>
+    <ul>
+        {% for tarefa in tarefas %}
+        <li>{{ tarefa[1] }} - Status: {{ tarefa[4] }} - Prazo: {{ tarefa[3] }}</li>
+        {% else %}
+        <li>Nenhuma tarefa encontrada.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    function showSection(sectionId) {
+        // Oculta todas as seções
+        document.querySelectorAll('.content').forEach(section => {
+            section.classList.remove('active');
+        });
+        // Mostra a seção clicada
+        document.getElementById(sectionId).classList.add('active');
+    }
+
+    // Mostra a seção de "Criar Tarefa" por padrão ao carregar a página
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verifica o hash na URL para mostrar a seção correta
+        if (window.location.hash) {
+            const sectionId = window.location.hash.substring(1); // Remove o '#'
+            showSection(sectionId);
+        } else {
+            showSection('criar-tarefa'); // Exibe a seção padrão
+        }
+    });
+
+    // Atualiza a seção ao enviar o formulário de filtro
+    document.querySelector('form[action="{{ url_for("dashboard") }}#listar-tarefas"]').onsubmit = function() {
+        showSection('listar-tarefas');
+    };
+</script>
+
+</body>
+</html>
