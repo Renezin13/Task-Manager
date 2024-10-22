@@ -150,7 +150,6 @@ def tasks():
 
     # Inicia a consulta
     query = f"SELECT * FROM tb_tarefas WHERE usr_id = {current_user.id}"
-    lista = list()
 
     # Adiciona condições com base nos parâmetros recebidos
     if status:
@@ -163,10 +162,8 @@ def tasks():
         query += f" AND tar_status = '{comandoS}'"
     if data_criacao:
         query += f" AND tar_data_criacao = '{data_criacao}'"
-        lista.append(data_criacao)
     if data_limite:
-        query += f" AND tar_data_limite = '{data_limite}'"
-        lista.append(data_limite)
+        query += f" AND tar_data_limite <= '{data_limite}'"
     if prioridade:
         if prioridade == "1":
             comandoP = "Alta"
@@ -175,10 +172,8 @@ def tasks():
         elif prioridade == "3":
             comandoP = "Baixa"
         query += f" AND tar_prioridade = '{comandoP}'"
-        lista.append(prioridade)
     if descricao:
-        query += f" AND tar_descricao LIKE '{descricao}'"
-        lista.append(descricao)
+        query += f" AND tar_descricao LIKE '{descricao}%'"
     if categoria:
         if categoria == "1":
             comandoC = "Trabalho"
@@ -187,10 +182,8 @@ def tasks():
         elif categoria == "3":
             comandoC = "Pessoal"
         query += f" AND tar_categoria = '{comandoC}'"
-        lista.append(categoria)
 
     # Executa a consulta com os parâmetros
-    print(lista)
     print(query)
     conn = obter_conexao()
     cursor = conn.cursor()

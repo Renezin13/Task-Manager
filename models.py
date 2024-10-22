@@ -6,7 +6,7 @@ def obter_conexao():
         host="localhost",
         user="root",
         password="",
-        database="db_TaskManager"
+        database="db_taskmanager"
     )   
 
 
