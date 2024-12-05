@@ -123,41 +123,41 @@
     <!-- Main Content -->
     <div class="content">
         <h2>Editar Tarefa</h2>
-        <form method="POST" action="{{ url_for('editar_tarefa', id=tarefa[0]) }}">
+        <form method="POST" action="{{ url_for('editar_tarefa', id=tarefa.id) }}">
             <div class="mb-3">
                 <label for="titulo" class="form-label">Título</label>
-                <input type="text" class="form-control" id="titulo" name="titulo" value="{{ tarefa[1] }}" required>
+                <input type="text" class="form-control" id="titulo" name="titulo" value="{{ tarefa.titulo }}" required>
             </div>
             <div class="mb-3">
                 <label for="descricao" class="form-label">Descrição</label>
-                <textarea class="form-control" id="descricao" name="descricao" required>{{ tarefa[2] }}</textarea>
+                <textarea class="form-control" id="descricao" name="descricao" required>{{ tarefa.descricao }}</textarea>
             </div>
             <div class="mb-3">
                 <label for="prazo" class="form-label">Prazo (Data Limite)</label>
-                <input type="date" class="form-control" id="prazo" name="prazo" value="{{ tarefa[4] }}" required>
+                <input type="date" class="form-control" id="prazo" name="prazo" value="{{ tarefa.prazo.strftime('%Y-%m-%d') }}" required>
             </div>
             <div class="mb-3">
                 <label for="prioridade" class="form-label">Prioridade</label>
                 <select class="form-select" id="prioridade" name="prioridade">
-                    <option value="Alta" {% if tarefa[6] == 'Alta' %}selected{% endif %}>Alta</option>
-                    <option value="Média" {% if tarefa[6] == 'Média' %}selected{% endif %}>Média</option>
-                    <option value="Baixa" {% if tarefa[6] == 'Baixa' %}selected{% endif %}>Baixa</option>
+                    <option value="Alta" {% if tarefa.prioridade == 'Alta' %}selected{% endif %}>Alta</option>
+                    <option value="Média" {% if tarefa.prioridade == 'Média' %}selected{% endif %}>Média</option>
+                    <option value="Baixa" {% if tarefa.prioridade == 'Baixa' %}selected{% endif %}>Baixa</option>
                 </select>
             </div>
             <div class="mb-3">
                 <label for="categoria" class="form-label">Categoria</label>
                 <select class="form-select" id="categoria" name="categoria">
-                    <option value="Trabalho" {% if tarefa[7] == 'Trabalho' %}selected{% endif %}>Trabalho</option>
-                    <option value="Estudo" {% if tarefa[7] == 'Estudo' %}selected{% endif %}>Estudo</option>
-                    <option value="Pessoal" {% if tarefa[7] == 'Pessoal' %}selected{% endif %}>Pessoal</option>
+                    <option value="Trabalho" {% if tarefa.categoria == 'Trabalho' %}selected{% endif %}>Trabalho</option>
+                    <option value="Estudo" {% if tarefa.categoria == 'Estudo' %}selected{% endif %}>Estudo</option>
+                    <option value="Pessoal" {% if tarefa.categoria == 'Pessoal' %}selected{% endif %}>Pessoal</option>
                 </select>
             </div>
             <div class="mb-3">
                 <label for="status" class="form-label">Status</label>
                 <select class="form-select" id="status" name="status">
-                    <option value="Concluída" {% if tarefa[5] == 'Concluída' %}selected{% endif %}>Concluída</option>
-                    <option value="Em andamento" {% if tarefa[5] == 'Em andamento' %}selected{% endif %}>Em andamento</option>
-                    <option value="Pendente" {% if tarefa[5] == 'Pendente' %}selected{% endif %}>Pendente</option>
+                    <option value="Concluída" {% if tarefa.status == 'Concluída' %}selected{% endif %}>Concluída</option>
+                    <option value="Em andamento" {% if tarefa.status == 'Em andamento' %}selected{% endif %}>Em andamento</option>
+                    <option value="Pendente" {% if tarefa.status == 'Pendente' %}selected{% endif %}>Pendente</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary">Salvar Alterações</button>

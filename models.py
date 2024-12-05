@@ -1,135 +1,113 @@
-import mysql.connector
-from flask_login import UserMixin
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker 
+from datetime import datetime
 
-def obter_conexao():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="db_taskmanager"
-    )   
+# Configuração do SQLAlchemy
+DATABASE_URL = "sqlite:///db_taskmanager.sqlite"
+engine = create_engine(DATABASE_URL, echo=True)
 
+Base = declarative_base()
+SessionLocal = sessionmaker(bind=engine)
 
-class Task:
-    def __init__(self, id, titulo, descricao, data_criacao, prazo, prioridade, categoria, usr_id):
-        self.id = id
-        self.titulo = titulo
-        self.descricao = descricao
-        self.data_criacao = data_criacao
-        self.prazo = prazo
-        self.prioridade = prioridade
-        self.categoria = categoria
-        self.usr_id = usr_id
+class User(Base):
+    __tablename__ = 'tb_usuarios'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    nome = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    senha = Column(String, nullable=False)
+
+    tasks = relationship("Task", back_populates="user")
+
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):  # Método necessário para Flask-Login
+        return str(self.id)
 
     @staticmethod
-    def create(titulo, descricao, data_limite, prioridade, categoria=None, status='Pendente', user_id=None):
+    def get_user_by_id(session, user_id):
+        return session.query(User).filter(User.id == user_id).first()
+
+    @staticmethod
+    def get_user_by_email(session, email):
+        return session.query(User).filter(User.email == email).first()
+
+    @staticmethod
+    def create_user(session, email, senha, nome):
+        new_user = User(email=email, senha=senha, nome=nome)
+        session.add(new_user)
+        session.commit()
+
+class Task(Base):
+    __tablename__ = 'tb_tarefas'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    titulo = Column(String, nullable=False)
+    descricao = Column(String, nullable=True)
+    data_criacao = Column(DateTime, default=datetime.now, nullable=False)
+    prazo = Column(DateTime, nullable=True)
+    prioridade = Column(String, nullable=True)
+    categoria = Column(String, nullable=True)
+    status = Column(String, default='Pendente')
+    usr_id = Column(Integer, ForeignKey('tb_usuarios.id'))
+
+    user = relationship("User", back_populates="tasks")
+
+    @staticmethod
+    def create_task(session, titulo, descricao, data_limite, prioridade, categoria=None, status='Pendente', user_id=None):
         if categoria == "1":
             categoria = "Trabalho"
         elif categoria == "2":
             categoria = "Estudo"
         elif categoria == "3":
             categoria = "Pessoal"
-        conexao = obter_conexao()
-        cursor = conexao.cursor()
-        cursor.execute(""" 
-            INSERT INTO tb_tarefas (tar_titulo, tar_descricao, tar_data_limite, tar_prioridade, tar_categoria, tar_status, usr_id) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (titulo, descricao, data_limite, prioridade, categoria, status, user_id))
-        print(categoria)
-        conexao.commit()
-        cursor.close()
-        conexao.close()
+
+        new_task = Task(
+            titulo=titulo,
+            descricao=descricao,
+            data_criacao=datetime.now(),
+            prazo=data_limite,
+            prioridade=prioridade,
+            categoria=categoria,
+            status=status,
+            usr_id=user_id
+        )
+        session.add(new_task)
+        session.commit()
 
     @staticmethod
-    def get_user_tasks(user_id, status=None, data_criacao=None, data_limite=None, prioridade=None, descricao=None, categoria=None):
-        conexao = obter_conexao()
-        cursor = conexao.cursor()
-        
-        query = "SELECT * FROM tb_tarefas WHERE usr_id = %s"
-        params = [user_id]
+    def get_user_tasks(session, user_id, **filters):
+        query = session.query(Task).filter(Task.usr_id == user_id)
 
-        if status:
-            query += " AND tar_status = %s"
-            params.append(status)
+        if 'status' in filters and filters['status']:
+            query = query.filter(Task.status == filters['status'])
 
-        if data_criacao:
-            query += " AND tar_data_criacao = %s"  # ajuste se o nome da coluna for diferente
-            params.append(data_criacao)
+        if 'data_criacao' in filters and filters['data_criacao']:
+            query = query.filter(Task.data_criacao == filters['data_criacao'])
 
-        if data_limite:
-            query += " AND tar_data_limite = %s"
-            params.append(data_limite)
+        if 'data_limite' in filters and filters['data_limite']:
+            query = query.filter(Task.prazo == filters['data_limite'])
 
-        if prioridade:
-            query += " AND tar_prioridade = %s"
-            params.append(prioridade)
+        if 'prioridade' in filters and filters['prioridade']:
+            query = query.filter(Task.prioridade == filters['prioridade'])
 
-        if descricao:
-            query += " AND tar_descricao LIKE %s"
-            params.append(f"%{descricao}%")
+        if 'descricao' in filters and filters['descricao']:
+            query = query.filter(Task.descricao.like(f"%{filters['descricao']}%"))
 
-        if categoria:
-            query += " AND tar_categoria = %s"
-            params.append(categoria)
+        if 'categoria' in filters and filters['categoria']:
+            query = query.filter(Task.categoria == filters['categoria'])
 
-        cursor.execute(query, params)
-        tasks = cursor.fetchall()
-        cursor.close()
-        conexao.close()
-        return tasks
+        return query.all()
 
-
-class User(UserMixin):  
-    def __init__(self, id, nome, email, senha):
-        self.id = id
-        self.nome = nome
-        self.email = email
-        self.senha = senha
-
-
-    @staticmethod
-    def get(user_id):
-        conexao = obter_conexao()
-        cursor = conexao.cursor()
-        cursor.execute("SELECT * FROM tb_usuarios WHERE usr_id = %s", (user_id,))
-        result = cursor.fetchone()
-        conexao.close()
-        if result:
-            return User(result[0], result[1], result[2], result[3])
-        return None
-
-
-    @staticmethod
-    def get_by_email(email):
-        conexao = obter_conexao()
-        cursor = conexao.cursor()
-        cursor.execute("SELECT * FROM tb_usuarios WHERE usr_email = %s", (email,))
-        result = cursor.fetchone()
-        conexao.close()
-        if result:
-            return User(result[0], result[1], result[2], result[3])
-        return None
-
-
-    @staticmethod
-    def create(email, senha, nome):
-        conexao = obter_conexao()
-        cursor = conexao.cursor()
-        cursor.execute("INSERT INTO tb_usuarios (usr_email, usr_senha, usr_nome) VALUES (%s, %s, %s)", (email, senha, nome))
-        conexao.commit()
-        conexao.close()
-
-
-    @property
-    def is_active(self):
-        return True
-
-
-    @property
-    def is_authenticated(self):
-        return True
-
-
-    @property
-    def is_anonymous(self):
-        return False
+if __name__ == "__main__":
+    Base.metadata.create_all(bind=engine)
